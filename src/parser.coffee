@@ -10,7 +10,7 @@ class Parser extends EventEmitter
     parse: =>
         @emit 'start', @
 
-        @header = new Header @filename
+        @header = new Header @filename, @encoding
         @header.parse (err) =>
 
             @emit 'header', @header
@@ -44,7 +44,20 @@ class Parser extends EventEmitter
     parseField: (field, buffer) =>
         value = (iconv.decode buffer, @encoding).trim()
 
-        if field.type is 'N' then value = parseInt value, 10
+        switch field.type
+
+            when 'N' then value = parseFloat value
+            when 'L' then value = value is 1
+            when 'D'
+                if value
+                    year = parseInt(value.slice 0,4)
+                    month = parseInt(value.slice 4,6)-1
+                    day = parseInt(value.slice 6,8)
+                    value = new Date year, month , day
+                else
+                    value = ''
+            else
+                value
 
         return value
 

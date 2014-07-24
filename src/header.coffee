@@ -1,15 +1,16 @@
 fs = require 'fs'
+iconv = require 'iconv-lite'
 
 class Header
 
-    constructor: (@filename) ->
+    constructor: (@filename, @encoding) ->
         return @
 
     parse: (callback) ->
         fs.readFile @filename, (err, buffer) =>
             throw err if err
 
-            @type = (buffer.slice 0, 1).toString 'utf-8'
+            @type = iconv.decode (buffer.slice 0, 1), @encoding
             @dateUpdated = @parseDate (buffer.slice 1, 4)
             @numberOfRecords = @convertBinaryToInteger (buffer.slice 4, 8)
             @start = @convertBinaryToInteger (buffer.slice 8, 10)
@@ -20,7 +21,6 @@ class Header
             callback @
 
     parseDate: (buffer) =>
-        console.log @convertBinaryToInteger buffer.slice 0, 1
         year = 1900 + @convertBinaryToInteger buffer.slice 0, 1
         month = (@convertBinaryToInteger buffer.slice 1, 2) - 1
         day = @convertBinaryToInteger buffer.slice 2, 3
@@ -29,8 +29,8 @@ class Header
 
     parseFieldSubRecord: (buffer) =>
         header = {
-            name: ((buffer.slice 0, 11).toString 'utf-8').replace /[\u0000]+$/, ''
-            type: (buffer.slice 11, 12).toString 'utf-8'
+            name: iconv.decode((buffer.slice 0, 11), @encoding).replace(/[\u0000]+$/, '')
+            type: iconv.decode (buffer.slice 11, 12), @encoding
             displacement: @convertBinaryToInteger buffer.slice 12, 16
             length: @convertBinaryToInteger buffer.slice 16, 17
             decimalPlaces: @convertBinaryToInteger buffer.slice 17, 18
