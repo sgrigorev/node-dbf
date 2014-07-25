@@ -1,16 +1,27 @@
 {EventEmitter} = require 'events'
 Header = require './header'
+HeaderFPT = require './header_fpt'
 fs = require 'fs'
 iconv = require 'iconv-lite'
 
 class Parser extends EventEmitter
 
     constructor: (@filename, @encoding = 'utf-8') ->
+        @base_filename = @filename.split('.dbf')[0]
 
     parse: =>
         @emit 'start', @
 
         @header = new Header @filename, @encoding
+
+        fs.exists "#{@base_filename}.fpt", (exists) =>
+            if exists
+                @header_fpt = new HeaderFPT @base_filename, @encoding
+                @header_fpt.parse (err) =>
+                @emit 'header_fpt', @header_fpt
+
+                @fpt_buffer = fs.readFileSync "#{@base_filename}.fpt"
+
         @header.parse (err) =>
 
             @emit 'header', @header
@@ -33,7 +44,6 @@ class Parser extends EventEmitter
             '@sequenceNumber': sequenceNumber
             '@deleted': (buffer.slice 0, 1)[0] isnt 32
         }
-
         loc = 1
         for field in @header.fields
             do (field) =>
@@ -41,11 +51,38 @@ class Parser extends EventEmitter
 
         return record
 
+    parseMemoRecord: (block_position) =>
+
+        if block_position > @header_fpt.nextFreeBlock
+            return ''
+
+        block_header_start = block_position * @header_fpt.memoSingleBlockLength
+        block_header_end = block_header_start + 8
+        block_size = @fpt_buffer.slice(block_header_start + 4 , block_header_end ).readInt32BE 0, true
+
+        if block_size is 0 or undefined or block_size > 2048
+            return ''
+
+        start = block_header_end
+        end = start + block_size
+
+        if end > @fpt_buffer.length
+            return ''
+
+        return (iconv.decode(@fpt_buffer.slice(start, end), @encoding)).trim()
+
     parseField: (field, buffer) =>
+
         value = (iconv.decode buffer, @encoding).trim()
-
         switch field.type
-
+            when 'M'
+                unless @header_fpt
+                    throw new Error("Memo field was specified but no related .FPT file was found for #{@filename}.")
+                block_position = buffer.readInt32LE 0, true
+                if block_position is 0
+                    value = ''
+                else
+                    value = @parseMemoRecord block_position
             when 'N' then value = parseFloat value
             when 'L' then value = value is 1
             when 'D'
@@ -58,7 +95,6 @@ class Parser extends EventEmitter
                     value = ''
             else
                 value
-
         return value
 
 module.exports = Parser
