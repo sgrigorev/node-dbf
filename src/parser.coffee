@@ -6,21 +6,23 @@ iconv = require 'iconv-lite'
 
 class Parser extends EventEmitter
 
-    constructor: (@filename, @encoding = 'utf-8') ->
-        @base_filename = @filename.split('.dbf')[0]
+    constructor: (@filename, @encoding = 'utf-8', @fpt_filename) ->
+        unless @fpt_filename
+            base_filename = @filename.split('.dbf')[0]
+            @fpt_filename = "#{base_filename}.fpt"
 
     parse: =>
         @emit 'start', @
 
         @header = new Header @filename, @encoding
 
-        fs.exists "#{@base_filename}.fpt", (exists) =>
+        fs.exists @fpt_filename, (exists) =>
             if exists
-                @header_fpt = new HeaderFPT @base_filename, @encoding
+                @header_fpt = new HeaderFPT @fpt_filename, @encoding
                 @header_fpt.parse (err) =>
                 @emit 'header_fpt', @header_fpt
 
-                @fpt_buffer = fs.readFileSync "#{@base_filename}.fpt"
+                @fpt_buffer = fs.readFileSync @fpt_filename
 
         @header.parse (err) =>
 
@@ -77,7 +79,7 @@ class Parser extends EventEmitter
         switch field.type
             when 'M'
                 unless @header_fpt
-                    throw new Error("Memo field was specified but no related .FPT file was found for #{@filename}.")
+                    throw new Error("Memo field was specified but related .FPT file (#{@fpt_filename}) was not found for #{@filename}.")
                 block_position = buffer.readInt32LE 0, true
                 if block_position is 0
                     value = ''

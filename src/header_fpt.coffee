@@ -3,11 +3,11 @@ iconv = require 'iconv-lite'
 
 class HeaderFPT
 
-    constructor: (@filename, @encoding) ->
+    constructor: (@fpt_filename, @encoding) ->
         return @
 
     parse: (callback) ->
-        fs.readFile "#{@filename}.fpt", (err, buffer) =>
+        fs.readFile @fpt_filename, (err, buffer) =>
             throw err if err
 
             @nextFreeBlock = (buffer.slice 0, 4).readInt32BE 0, true
