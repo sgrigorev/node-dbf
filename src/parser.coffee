@@ -86,7 +86,9 @@ class Parser extends EventEmitter
                 else
                     value = @parseMemoRecord block_position
             when 'N' then value = parseFloat value
-            when 'L' then value = value is 1
+            when 'L'
+                value = true  if value is 'T'
+                value = false if value is 'F'
             when 'D'
                 if value
                     year = parseInt(value.slice 0,4)
