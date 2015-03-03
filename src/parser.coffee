@@ -11,6 +11,7 @@ class Parser extends EventEmitter
             base_filename = @filename.split('.dbf')[0]
             @fpt_filename = "#{base_filename}.fpt"
 
+
     parse: =>
         @emit 'start', @
 
@@ -25,7 +26,6 @@ class Parser extends EventEmitter
                 @fpt_buffer = fs.readFileSync @fpt_filename
 
         @header.parse (err) =>
-
             @emit 'header', @header
 
             sequenceNumber = 0
@@ -62,6 +62,7 @@ class Parser extends EventEmitter
 
         return @
 
+
     parseRecord: (sequenceNumber, buffer) =>
         record = {
             '__sequenceNumber': sequenceNumber
@@ -74,8 +75,8 @@ class Parser extends EventEmitter
 
         return record
 
-    parseMemoRecord: (block_position) =>
 
+    parseMemoRecord: (block_position) =>
         if block_position > @header_fpt.nextFreeBlock
             return ''
 
@@ -94,9 +95,10 @@ class Parser extends EventEmitter
 
         return (iconv.decode(@fpt_buffer.slice(start, end), @encoding)).trim()
 
-    parseField: (field, buffer) =>
 
+    parseField: (field, buffer) =>
         value = (iconv.decode buffer, @encoding).trim()
+
         switch field.type
             when 'M'
                 unless @header_fpt
@@ -106,9 +108,12 @@ class Parser extends EventEmitter
                     value = ''
                 else
                     value = @parseMemoRecord block_position
+
             when 'N' then value = parseFloat value
+
             when 'L'
                 value = if value is 'T' then true else false
+
             when 'D'
                 if value
                     year = parseInt(value.slice 0,4)
@@ -117,6 +122,7 @@ class Parser extends EventEmitter
                     value = new Date year, month , day
                 else
                     value = null
+
             when 'T'
                 d = buffer.readInt32LE(0)
                 t = buffer.readInt32LE(4)
@@ -139,8 +145,10 @@ class Parser extends EventEmitter
 
                     value = new Date(year, month, day)
                     value.setMilliseconds(value.getMilliseconds() + t)
+
             else
                 value
+
         return value
 
 module.exports = Parser

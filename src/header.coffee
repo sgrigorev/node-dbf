@@ -21,7 +21,8 @@ class Header
             callback @
 
     parseDate: (buffer) =>
-        year = 1900 + @convertBinaryToInteger buffer.slice 0, 1
+        year = @convertBinaryToInteger buffer.slice 0, 1
+        year = if year >= 60 then year + 1900 else year + 2000
         month = (@convertBinaryToInteger buffer.slice 1, 2) - 1
         day = @convertBinaryToInteger buffer.slice 2, 3
 
