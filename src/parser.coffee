@@ -97,6 +97,28 @@ class Parser extends EventEmitter
                     value = new Date year, month , day
                 else
                     value = ''
+            when 'T'
+                d = buffer.readInt32LE(0)
+                t = buffer.readInt32LE(4)
+                value = null
+
+                if d > 0
+                    f = Math.floor
+                    W = f((d - 1867216.25)/36524.25)
+                    X = f(W/4)
+                    A = d+1+W-X
+                    B = A+1524
+                    C = f((B-122.1)/365.25)
+                    D = f(365.25*C)
+                    E = f((B-D)/30.6001)
+                    F = f(30.6001*E)
+
+                    day = B-D-F
+                    month = if E <= 13 then E-2 else E-14
+                    year = if month <= 1 then C-4715 else C-4716
+
+                    value = new Date(year, month, day)
+                    value.setMilliseconds(value.getMilliseconds() + t)
             else
                 value
         return value
