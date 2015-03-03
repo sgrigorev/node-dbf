@@ -30,14 +30,35 @@ class Parser extends EventEmitter
 
             sequenceNumber = 0
 
-            fs.readFile @filename, (err, buffer) =>
-                throw err if err
-
-                loc = @header.start
-                while loc < (@header.start + @header.numberOfRecords * @header.recordLength) and loc < buffer.length
-                    @emit 'record', @parseRecord ++sequenceNumber, buffer.slice loc, loc += @header.recordLength
-
-                @emit 'end', @
+            loc = @header.start
+            bufLoc = @header.start
+            overflow = null
+            
+            stream = fs.createReadStream @filename
+            
+            readBuf = =>
+                
+                while buffer = stream.read()
+                    
+                    if bufLoc isnt @header.start then bufLoc = 0
+                    
+                    if overflow isnt null then buffer = Buffer.concat [overflow, buffer]
+                    
+                    while loc < (@header.start + @header.numberOfRecords * @header.recordLength) && (bufLoc + @header.recordLength) <= buffer.length
+                        
+                        @emit 'record', @parseRecord ++sequenceNumber, buffer.slice bufLoc, bufLoc += @header.recordLength
+                        
+                    loc += bufLoc
+                    
+                    if bufLoc < buffer.length then overflow = buffer.slice bufLoc, buffer.length else overflow = null
+                    
+                    return @
+                    
+            stream.on 'readable',readBuf
+            
+            stream.on 'end', () =>
+            
+                @emit 'end'
 
         return @
 
