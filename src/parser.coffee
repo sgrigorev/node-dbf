@@ -108,8 +108,7 @@ class Parser extends EventEmitter
                     value = @parseMemoRecord block_position
             when 'N' then value = parseFloat value
             when 'L'
-                value = true  if value is 'T'
-                value = false if value is 'F'
+                value = if value is 'T' then true else false
             when 'D'
                 if value
                     year = parseInt(value.slice 0,4)
@@ -117,7 +116,7 @@ class Parser extends EventEmitter
                     day = parseInt(value.slice 6,8)
                     value = new Date year, month , day
                 else
-                    value = ''
+                    value = null
             when 'T'
                 d = buffer.readInt32LE(0)
                 t = buffer.readInt32LE(4)
