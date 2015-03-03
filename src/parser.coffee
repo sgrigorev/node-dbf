@@ -64,8 +64,8 @@ class Parser extends EventEmitter
 
     parseRecord: (sequenceNumber, buffer) =>
         record = {
-            '@sequenceNumber': sequenceNumber
-            '@deleted': (buffer.slice 0, 1)[0] isnt 32
+            '__sequenceNumber': sequenceNumber
+            '__deleted': (buffer.slice 0, 1)[0] isnt 32
         }
         loc = 1
         for field in @header.fields
