@@ -16,7 +16,10 @@ class Header
             @start = @convertBinaryToInteger (buffer.slice 8, 10)
             @recordLength = @convertBinaryToInteger (buffer.slice 10, 12)
 
-            @fields = (buffer.slice i, i+32 for i in [32 .. @start - 32] by 32).map @parseFieldSubRecord
+			# The field subrecords are each 32 bits(for dbf revs < dbase 7), the set terminated by 0x0D
+            i = 32
+            @fields = until buffer[i] is 0x0D
+                @parseFieldSubRecord buffer.slice(i, i += 32)
 
             callback @
 
