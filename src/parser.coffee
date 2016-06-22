@@ -111,6 +111,8 @@ class Parser extends EventEmitter
 
             when 'N' then value = parseFloat value
 
+            when 'I' then value = buffer.readInt32LE 0, true
+
             when 'L'
                 value = if value is 'T' then true else false
 
