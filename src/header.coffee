@@ -41,6 +41,6 @@ class Header
         }
 
     convertBinaryToInteger: (buffer) ->
-        return buffer.readInt32LE 0, true
+        return buffer.readIntLE 0, buffer.length
 
 module.exports = Header

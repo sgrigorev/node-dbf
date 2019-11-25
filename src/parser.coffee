@@ -82,7 +82,7 @@ class Parser extends EventEmitter
 
         block_header_start = block_position * @header_fpt.memoSingleBlockLength
         block_header_end = block_header_start + 8
-        block_size = @fpt_buffer.slice(block_header_start + 4 , block_header_end ).readInt32BE 0, true
+        block_size = @fpt_buffer.slice(block_header_start + 4 , block_header_end ).readInt32BE 0
 
         if block_size is 0 or undefined or block_size > 2048
             return ''
@@ -103,7 +103,7 @@ class Parser extends EventEmitter
             when 'M'
                 unless @header_fpt
                     throw new Error("Memo field was specified but related .FPT file (#{@fpt_filename}) was not found for #{@filename}.")
-                block_position = buffer.readInt32LE 0, true
+                block_position = buffer.readInt32LE 0
                 if block_position is 0
                     value = ''
                 else
@@ -111,7 +111,7 @@ class Parser extends EventEmitter
 
             when 'N' then value = parseFloat value
 
-            when 'I' then value = buffer.readInt32LE 0, true
+            when 'I' then value = buffer.readInt32LE 0
 
             when 'L'
                 value = if value is 'T' then true else false

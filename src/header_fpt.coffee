@@ -10,8 +10,8 @@ class HeaderFPT
         fs.readFile @fpt_filename, (err, buffer) =>
             throw err if err
 
-            @nextFreeBlock = (buffer.slice 0, 4).readInt32BE 0, true
-            @memoSingleBlockLength = (buffer.slice 6, 8).readInt16BE 0, true
+            @nextFreeBlock = (buffer.slice 0, 4).readInt32BE 0
+            @memoSingleBlockLength = (buffer.slice 6, 8).readInt16BE 0
             callback @
 
 module.exports = HeaderFPT
