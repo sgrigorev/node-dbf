@@ -1,6 +1,6 @@
 {
   "name": "node-dbf",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An efficient dBase DBF file parser written in pure JavaScript",
   "main": "./lib/parser.js",
   "repository": {
